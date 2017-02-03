@@ -41,7 +41,7 @@ object FourBatchArrayNorm {
     power(s1 + s2 + s3 + s4, 1.0 / p)
   }
 
-  val standardConfig = config(
+  val standardConfig: MeasureBuilder[Unit, Double] = config(
     Key.exec.minWarmupRuns -> 10,
     Key.exec.maxWarmupRuns -> 10,
     Key.exec.benchRuns -> 10,
