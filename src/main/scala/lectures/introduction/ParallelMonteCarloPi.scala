@@ -39,7 +39,7 @@ object ParallelMonteCarloPi {
   }
 
   def main(args: Array[String]) {
-    val iterations = 4000000
+    val iterations = 40000000
     val seqtime = standardConfig measure {
       seqResult = monteCarloPi(iterations)
     }

@@ -46,23 +46,42 @@ object FourBatchArrayNorm {
     Key.exec.maxWarmupRuns -> 10,
     Key.exec.benchRuns -> 10,
     Key.verbose -> true
-  ) withWarmer(new Warmer.Default)
+  ).withWarmer(new Warmer.Default)
+
+  // like sumSegment but parallel
+  def segmentRec(a: Array[Int], p: Double, s: Int, t: Int, threshold: Int): Int = {
+    if (t - s < threshold)
+      sumSegment(a, p, s, t) // small segment: do it sequentially
+    else {
+      val m = s + (t - s) / 2
+      val (sum1, sum2) = parallel(segmentRec(a, p, s, m, threshold),
+        segmentRec(a, p, m, t, threshold))
+      sum1 + sum2
+    }
+  }
+
+  def pNormRec(a: Array[Int], p: Double, threshold: Int): Int =
+    power(segmentRec(a, p, 0, a.length, threshold), 1 / p)
+
 
   def main(args: Array[String]) {
     val p = 1.5
-    val xs = (0 until 2000000).map(_ % 100).toArray
+    val xs = (0 until 20000000).map(_ % 100).toArray
     val seqtime = standardConfig measure {
       dummy = normSum(xs, p)
     }
     println(s"sequential sum time: $seqtime ms")
 
     val threshold = 10000
+//    val fjtime = standardConfig measure {
+//      dummy2 = fjNormSum(xs, p, threshold)
+//    }
     val fjtime = standardConfig measure {
-      dummy2 = fjNormSum(xs, p, threshold)
+      dummy2 = pNormRec(xs, p, threshold)
     }
     println(s"values computed are $dummy vs $dummy2")
     println(s"fork/join time: $fjtime ms")
-    println(s"speedup: ${seqtime/fjtime}")
+    println(s"speedup: ${seqtime / fjtime}")
   }
 
 }
