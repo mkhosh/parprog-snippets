@@ -1,13 +1,17 @@
 package lectures
 package algorithms
 
+import java.lang.reflect.Method
+
 import org.scalameter._
 import common._
+
+import scala.annotation.tailrec
 
 object MergeSort {
   // a bit of reflection to access the private sort1 method, which takes an offset and an argument
   private val sort1 = {
-    val method = scala.util.Sorting.getClass.getDeclaredMethod("sort1", classOf[Array[Int]], classOf[Int], classOf[Int])
+    val method: Method = scala.util.Sorting.getClass.getDeclaredMethod("sort1", classOf[Array[Int]], classOf[Int], classOf[Int])
     method.setAccessible(true)
     (xs: Array[Int], offset: Int, len: Int) => {
       method.invoke(scala.util.Sorting, xs, offset.asInstanceOf[AnyRef], len.asInstanceOf[AnyRef])
@@ -61,6 +65,7 @@ object MergeSort {
         right += 1
       }
     }
+
     // Without the merge step, the sort phase parallelizes almost linearly.
     // This is because the memory pressure is much lower than during copying in the third step.
     def sort(from: Int, until: Int, depth: Int): Unit = {
@@ -80,6 +85,7 @@ object MergeSort {
         merge(src, dst, from, mid, until)
       }
     }
+
     sort(0, xs.length, 0)
 
     // 3) In parallel, copy the elements back into the source array.
@@ -101,6 +107,7 @@ object MergeSort {
         right.join()
       }
     }
+
     if (maxDepth % 2 != 0) {
       copy(ys, xs, 0, xs.length, 0)
     }
@@ -111,7 +118,7 @@ object MergeSort {
     Key.exec.maxWarmupRuns -> 60,
     Key.exec.benchRuns -> 60,
     Key.verbose -> true
-  ) withWarmer(new Warmer.Default)
+  ) withWarmer (new Warmer.Default)
 
   def initialize(xs: Array[Int]) {
     var i = 0
